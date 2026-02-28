@@ -1,82 +1,549 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chengyu Game</title>
-    <style>
-        /* Add your CSS styles here to maintain original design */
-        body { font-family: Arial, sans-serif; }
-        .game-container { max-width: 600px; margin: auto; text-align: center; }
-        .level, .timer, .lives, .score { margin: 20px; font-size: 24px; }
-        .button { padding: 10px 20px; font-size: 18px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>成语字牌小游戏</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fdfbfb, #ebedee);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: #333;
+    }
+    .game-container {
+      margin-top: 40px;
+      background: #ffffffcc;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+      border-radius: 18px;
+      padding: 24px 26px 26px;
+      max-width: 720px;
+      width: 90%;
+      box-sizing: border-box;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 13px;
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+    .level-timer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border-radius: 12px;
+      border: 1px solid #bfdbfe;
+    }
+    .level-timer-bar .timer-value {
+      font-variant-numeric: tabular-nums;
+      color: #1d4ed8;
+    }
+    .level-timer-bar .timer-value.warning {
+      color: #b91c1c;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .status-item span.label {
+      color: #6b7280;
+      margin-right: 4px;
+    }
+    .status-item span.value {
+      font-weight: 600;
+      color: #111827;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+    .card {
+      position: relative;
+      border-radius: 10px;
+      padding: 14px 0;
+      text-align: center;
+      background: linear-gradient(145deg, #f9fafb, #e5e7eb);
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 3px 7px rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      font-size: 18px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(15, 23, 42, 0.12);
+    }
+    .card.selected {
+      background: linear-gradient(145deg, #2563eb, #3b82f6);
+      color: #f9fafb;
+      border-color: #1d4ed8;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.55);
+    }
+    .card-index {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .current-selection {
+      font-size: 15px;
+      margin-bottom: 10px;
+      min-height: 22px;
+    }
+    .current-selection span.label {
+      color: #6b7280;
+      margin-right: 4px;
+    }
+    .current-selection span.value {
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #111827;
+    }
+    .buttons-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #f9fafb;
+      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(37, 99, 235, 0.5);
+    }
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+    }
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+    .message {
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin-top: 4px;
+      min-height: 22px;
+    }
+    .message.info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .message.success {
+      background: #ecfdf5;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+    .message.error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .tip {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .level-end-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .level-end-overlay.show {
+      display: flex;
+    }
+    .level-end-box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 32px;
+      box-shadow: 0 25px 50px rgba(15, 23, 42, 0.25);
+      text-align: center;
+      max-width: 360px;
+    }
+    .level-end-box h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #111827;
+    }
+    .level-end-box .level-score-text {
+      font-size: 18px;
+      color: #1d4ed8;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .level-end-box .btn {
+      margin-top: 8px;
+    }
+    @media (max-width: 600px) {
+      .cards-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1>Chengyu Game</h1>
-        <div class="level">Level: <span id="level">1</span></div>
-        <div class="timer">Time Left: <span id="timer">60</span> seconds</div>
-        <div class="lives">Lives: <span id="lives">3</span></div>
-        <div class="score">Score: <span id="score">0</span></div>
-        <button class="button" id="start-button">Start Game</button>
-        <div id="game-area"></div>
+  <div class="game-container">
+    <div class="title">成语字牌小游戏</div>
+    <div class="subtitle">点击字牌组成 4 字成语，命中内置成语库即可得分</div>
+
+    <div class="level-timer-bar">
+      <div class="status-item">
+        <span class="label">关卡：</span><span class="value" id="level">1</span>
+      </div>
+      <div class="status-item timer-wrap">
+        <span class="label">剩余时间：</span><span class="value timer-value" id="timer">1:00</span>
+      </div>
+      <div class="status-item">
+        <span class="label">本关得分：</span><span class="value" id="level-score">0</span>
+      </div>
     </div>
-    <script>
-        let level = 1;
-        let score = 0;
-        let lives = 3;
-        let timer;
-        let timeLeft = 60;
 
-        const levelElement = document.getElementById('level');
-        const scoreElement = document.getElementById('score');
-        const livesElement = document.getElementById('lives');
-        const timerElement = document.getElementById('timer');
-        const startButton = document.getElementById('start-button');
+    <div class="status-bar">
+      <div class="status-item">
+        <span class="label">回合：</span><span class="value" id="round">1</span>
+      </div>
+      <div class="status-item">
+        <span class="label">总分：</span><span class="value" id="score">0</span>
+      </div>
+      <div class="status-item">
+        <span class="label">生命：</span><span class="value" id="lives">3</span>
+      </div>
+    </div>
 
-        startButton.addEventListener('click', startGame);
+    <div class="current-selection">
+      <span class="label">当前选择：</span>
+      <span class="value" id="current-word">（还未选择）</span>
+    </div>
 
-        function startGame() {
-            startButton.style.display = 'none';
-            nextLevel();
+    <div class="cards-grid" id="cards"></div>
+
+    <div class="buttons-row">
+      <button class="btn-secondary" id="btn-clear">清空选择</button>
+      <div style="flex:1;"></div>
+      <button class="btn-secondary" id="btn-new-hand">换一组字牌</button>
+      <button class="btn-primary" id="btn-submit">提交成语</button>
+    </div>
+
+    <div class="message info" id="message">提示：每轮至少保证能组成 1 个成语。</div>
+
+    <div class="tip">
+      操作说明：<br />
+      - 每关限时 1 分钟，时间到后自动结束并显示本关得分，通过后可进入下一关。<br />
+      - 点击字牌选择 4 个字组成成语，答对得分，答错扣除 1 条生命。<br />
+      - 关卡越高，字牌数量越多，难度逐渐增加。<br />
+    </div>
+  </div>
+
+  <div class="level-end-overlay" id="level-end-overlay">
+    <div class="level-end-box">
+      <h3 id="level-end-title">本关结束</h3>
+      <p class="level-score-text" id="level-end-score">本关得分：0</p>
+      <button class="btn btn-primary" id="btn-next-level">进入下一关</button>
+    </div>
+  </div>
+
+  <script>
+    // 成语库
+    const IDIOMS = [
+      "一心一意", "万事如意", "一举两得", "三心二意", "自相矛盾",
+      "画蛇添足", "亡羊补牢", "对牛弹琴", "守株待兔", "雪上加霜",
+      "锦上添花", "掩耳盗铃", "如鱼得水", "翻山越岭", "九牛一毛",
+      "举一反三", "全神贯注", "刻舟求剑", "无中生有", "一清二楚"
+    ];
+    const TARGET_LEN = 4;
+    const LEVEL_TIME_SEC = 60;
+    const BASE_HAND_SIZE = 12;
+
+    function getHandSize(level) {
+      return BASE_HAND_SIZE + (level - 1) * 2;
+    }
+
+    let hand = [];
+    let selectedIndices = [];
+    let score = 0;
+    let levelScore = 0;
+    let lives = 3;
+    let roundNo = 1;
+    let level = 1;
+    let timeLeft = LEVEL_TIME_SEC;
+    let timerId = null;
+    let gameOver = false;
+
+    const cardsEl = document.getElementById("cards");
+    const currentWordEl = document.getElementById("current-word");
+    const messageEl = document.getElementById("message");
+    const scoreEl = document.getElementById("score");
+    const livesEl = document.getElementById("lives");
+    const roundEl = document.getElementById("round");
+    const levelEl = document.getElementById("level");
+    const timerEl = document.getElementById("timer");
+    const levelScoreEl = document.getElementById("level-score");
+    const btnClear = document.getElementById("btn-clear");
+    const btnNewHand = document.getElementById("btn-new-hand");
+    const btnSubmit = document.getElementById("btn-submit");
+    const levelEndOverlay = document.getElementById("level-end-overlay");
+    const levelEndTitle = document.getElementById("level-end-title");
+    const levelEndScoreEl = document.getElementById("level-end-score");
+    const btnNextLevel = document.getElementById("btn-next-level");
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function buildHand(handSize) {
+      const targetIdiom = getRandomItem(IDIOMS);
+      const chars = Array.from(targetIdiom);
+      const allChars = Array.from(new Set(IDIOMS.join("")));
+      while (chars.length < handSize) {
+        chars.push(getRandomItem(allChars));
+      }
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      return chars;
+    }
+
+    function renderHand() {
+      cardsEl.innerHTML = "";
+      hand.forEach((ch, idx) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        if (selectedIndices.includes(idx)) {
+          card.classList.add("selected");
         }
+        card.dataset.index = idx;
 
-        function nextLevel() {
-            timeLeft = 60;
-            levelElement.textContent = level;
-            scoreElement.textContent = score;
-            livesElement.textContent = lives;
-            timer = setInterval(updateTimer, 1000);
+        const idxLabel = document.createElement("div");
+        idxLabel.className = "card-index";
+        idxLabel.textContent = idx.toString().padStart(2, "0");
+        card.appendChild(idxLabel);
+
+        const textNode = document.createTextNode(ch);
+        card.appendChild(textNode);
+
+        card.addEventListener("click", () => toggleSelect(idx));
+        cardsEl.appendChild(card);
+      });
+      updateCurrentWord();
+    }
+
+    function updateCurrentWord() {
+      const chars = selectedIndices.map(i => hand[i]);
+      if (chars.length === 0) {
+        currentWordEl.textContent = "（还未选择）";
+      } else {
+        currentWordEl.textContent = chars.join("");
+      }
+    }
+
+    function setMessage(text, type = "info") {
+      messageEl.textContent = text;
+      messageEl.className = "message " + type;
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return m + ":" + String(s).padStart(2, "0");
+    }
+
+    function startTimer() {
+      if (timerId) clearInterval(timerId);
+      timeLeft = LEVEL_TIME_SEC;
+      timerEl.textContent = formatTime(timeLeft);
+      timerEl.classList.remove("warning");
+
+      timerId = setInterval(() => {
+        timeLeft -= 1;
+        timerEl.textContent = formatTime(timeLeft);
+        if (timeLeft <= 10) {
+          timerEl.classList.add("warning");
         }
-
-        function updateTimer() {
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                loseLife();
-                return;
-            }
-            timeLeft--;
-            timerElement.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearTimer();
+          endLevel();
         }
+      }, 1000);
+    }
 
-        function loseLife() {
-            lives--;
-            if (lives <= 0) {
-                gameOver();
-            } else {
-                livesElement.textContent = lives;
-                level++; // Level up when lives are lost
-                nextLevel();
-            }
+    function clearTimer() {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function endLevel() {
+      clearTimer();
+      levelEndTitle.textContent = "本关结束";
+      levelEndScoreEl.textContent = "本关得分：" + levelScore;
+      btnNextLevel.textContent = "进入下一关";
+      btnNextLevel.onclick = goNextLevel;
+      levelEndOverlay.classList.add("show");
+    }
+
+    function goNextLevel() {
+      levelEndOverlay.classList.remove("show");
+      level += 1;
+      levelScore = 0;
+      roundNo = 1;
+      levelScoreEl.textContent = "0";
+      levelEl.textContent = level;
+      startLevel();
+    }
+
+    function startLevel() {
+      const handSize = getHandSize(level);
+      hand = buildHand(handSize);
+      selectedIndices = [];
+      roundEl.textContent = roundNo;
+      levelScoreEl.textContent = levelScore;
+      levelEl.textContent = level;
+      renderHand();
+      setMessage("第 " + level + " 关开始！本关共 " + handSize + " 张字牌，限时 1 分钟。", "info");
+      startTimer();
+    }
+
+    function toggleSelect(index) {
+      if (gameOver) return;
+      const pos = selectedIndices.indexOf(index);
+      if (pos >= 0) {
+        selectedIndices.splice(pos, 1);
+      } else {
+        if (selectedIndices.length >= TARGET_LEN) {
+          setMessage("最多只能选择 4 个字，可以先点击【清空选择】。", "error");
+          return;
         }
+        selectedIndices.push(index);
+      }
+      renderHand();
+      setMessage("提示：选择 4 个字后点击【提交成语】。", "info");
+    }
 
-        function gameOver() {
-            alert(`Game Over! Your score: ${score}`);
-            location.reload(); // Reloads the page to restart
+    function newRound() {
+      const handSize = getHandSize(level);
+      hand = buildHand(handSize);
+      selectedIndices = [];
+      roundNo += 1;
+      roundEl.textContent = roundNo;
+      levelScoreEl.textContent = levelScore;
+      renderHand();
+      setMessage("新一轮！每轮至少有 1 个可组成的成语。", "info");
+    }
+
+    function submitIdiom() {
+      if (gameOver) return;
+      if (selectedIndices.length !== TARGET_LEN) {
+        setMessage("请先选择恰好 4 个字，再提交。", "error");
+        return;
+      }
+      const chars = selectedIndices.map(i => hand[i]);
+      const word = chars.join("");
+      if (IDIOMS.includes(word)) {
+        score += 1;
+        levelScore += 1;
+        scoreEl.textContent = score;
+        levelScoreEl.textContent = levelScore;
+        setMessage("恭喜，你组成了合法成语「" + word + "」，+1 分！", "success");
+        setTimeout(function () {
+          newRound();
+        }, 700);
+      } else {
+        lives -= 1;
+        livesEl.textContent = lives;
+        if (lives <= 0) {
+          gameOver = true;
+          clearTimer();
+          setMessage("「" + word + "」不在成语库中，生命已用完，游戏结束。刷新页面可重新开始。", "error");
+          btnSubmit.disabled = true;
+          btnNewHand.disabled = true;
+          cardsEl.querySelectorAll(".card").forEach(function (c) {
+            c.style.pointerEvents = "none";
+          });
+          levelEndTitle.textContent = "游戏结束";
+          levelEndScoreEl.textContent = "本关得分：" + levelScore;
+          btnNextLevel.textContent = "重新开始";
+          btnNextLevel.onclick = function () {
+            document.location.reload();
+          };
+          levelEndOverlay.classList.add("show");
+        } else {
+          setMessage("「" + word + "」不在成语库中，生命 -1。你还剩 " + lives + " 点生命。", "error");
         }
+      }
+      selectedIndices = [];
+      renderHand();
+    }
 
-        // Game logic and feature implementations here...
-    </script>
+    btnClear.addEventListener("click", function () {
+      if (gameOver) return;
+      selectedIndices = [];
+      renderHand();
+      setMessage("已清空当前选择，可以重新点击字牌。", "info");
+    });
+
+    btnNewHand.addEventListener("click", function () {
+      if (gameOver) return;
+      newRound();
+    });
+
+    btnSubmit.addEventListener("click", submitIdiom);
+
+    function init() {
+      levelScore = 0;
+      levelScoreEl.textContent = "0";
+      levelEl.textContent = level;
+      startLevel();
+    }
+    init();
+  </script>
 </body>
 </html>
